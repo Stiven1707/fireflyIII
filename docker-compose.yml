@@ -1,3 +1,5 @@
+version: "3.9"
+
 services:
 
   app:
@@ -8,32 +10,30 @@ services:
     volumes:
       - ./firefly_upload:/var/www/html/storage/upload
     env_file: .env
+    depends_on:
+      - db
     networks:
       - proxy
       - internal
-    depends_on:
-      - db
-      
+
   db:
-    image: mariadb:latest
+    image: mariadb:10.6
     hostname: db
     container_name: firefly_iii_db
     restart: unless-stopped
     env_file: .db.env
-   networks:
-      - internal
     volumes:
       - ./firefly_db:/var/lib/mysql
-      
+    networks:
+      - internal
+
   cron:
-    #
-    # To make this work, set STATIC_CRON_TOKEN in your .env file or as an environment variable and replace "klI0JEC7TkDisfFuyjbRsIqATxmH5qRW" below
-    # The STATIC_CRON_TOKEN must be *exactly* 32 characters long
-    #
     image: alpine
-    restart: unless-stopped
     container_name: firefly_iii_cron
-    command: sh -c "echo \"0 3 * * * wget -qO- http://app:8080/api/v1/cron/6125927d2f1f502e2d38bd897ebefe75;echo\" | crontab - && crond -f -L /dev/stdout"
+    restart: unless-stopped
+    command: >
+      sh -c "echo \"0 3 * * * wget -qO- http://app:8080/api/v1/cron/6125927d2f1f502e2d38bd897ebefe75\"
+      | crontab - && crond -f -L /dev/stdout"
     networks:
       - internal
 
@@ -42,5 +42,3 @@ networks:
     external: true
   internal:
     external: true
-
-   
