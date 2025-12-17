@@ -9,9 +9,8 @@ services:
       - ./firefly_upload:/var/www/html/storage/upload
     env_file: .env
     networks:
-      - firefly_iii
-    ports:
-      - "8200:8080"
+      - proxy
+      - internal
     depends_on:
       - db
       
@@ -21,8 +20,8 @@ services:
     container_name: firefly_iii_db
     restart: unless-stopped
     env_file: .db.env
-    networks:
-      - firefly_iii
+   networks:
+      - internal
     volumes:
       - ./firefly_db:/var/lib/mysql
       
@@ -36,9 +35,12 @@ services:
     container_name: firefly_iii_cron
     command: sh -c "echo \"0 3 * * * wget -qO- http://app:8080/api/v1/cron/6125927d2f1f502e2d38bd897ebefe75;echo\" | crontab - && crond -f -L /dev/stdout"
     networks:
-      - firefly_iii
+      - internal
 
 networks:
-  firefly_iii:
-    driver: bridge
+  proxy:
+    external: true
+  internal:
+    external: true
+
    
